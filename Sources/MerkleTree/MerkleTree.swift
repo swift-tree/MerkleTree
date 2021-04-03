@@ -1,17 +1,15 @@
-import BinaryTree
 import CryptoKit
 import Foundation
-import Tree
 
-public typealias MerkleTree = BinaryTree<MerkleNode>
+public typealias MerkleTree = TwoWayBinaryTree<MerkleNode>
 
 extension Digest {
-    var bytes: [UInt8] { Array(makeIterator()) }
-    var data: Data { Data(bytes) }
+  var bytes: [UInt8] { Array(makeIterator()) }
+  var data: Data { Data(bytes) }
 
-    var hexStr: String {
-        bytes.map { String(format: "%02X", $0) }.joined()
-    }
+  var hexStr: String {
+    bytes.map { String(format: "%02X", $0) }.joined()
+  }
 }
 
 public extension Data {
