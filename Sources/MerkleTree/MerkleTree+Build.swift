@@ -24,40 +24,52 @@ extension MerkleTree: CustomStringConvertible {
   }
 }
 
-public enum Mode: Hashable {
-  case left(String)
-  case right(String)
+public struct PathHash: Hashable {
+  public enum Leaf { case left, right }
+  public let hash: String
+  public let leaf: Leaf
+
+  public init(_ hash: String, leaf: Leaf){
+    self.hash = hash
+    self.leaf = leaf
+  }
 }
 
 public extension MerkleTree {
-  static func proves(blob: Data, hashSet: [String: MerkleTree], path: [Mode]) -> Bool {
-    guard let child = hashSet[blob.doubleHashedHex] else {return false}
+  func getAuditTrail(for itemHash: String, leaves: [MerkleTree]) -> [PathHash] {
+    guard let targetLeave = leaves.first(where: { $0.value.hash == itemHash }) else { return [] }
+    var path = [PathHash]()
 
-    var path = path
-    var currentParent: MerkleTree? = child.parent
-
+    var currentParent: MerkleTree? = targetLeave.parent
+    var siblingHash = itemHash
     while let parent = currentParent,
           let leftHash = parent.children.left?.value.hash,
           let rightHash = parent.children.right?.value.hash {
 
-      switch path.removeFirst() {
-      case let .left(hash):
-        if parent.value.hash == Data((hash + rightHash).utf8).doubleHashedHex {
-          currentParent = parent.parent
-        }else{
-          return false
-        }
-      case let .right(hash):
-
-          print("left" + Data((hash + rightHash).utf8).doubleHashedHex)
-        if parent.value.hash == Data((leftHash + hash).utf8).doubleHashedHex {
-          currentParent = parent.parent
-        }else{
-          return false
-        }
+      if leftHash == siblingHash {
+        path.append(PathHash(rightHash, leaf: .right))
+      } else if rightHash == siblingHash {
+        path.append(PathHash(leftHash, leaf: .left))
       }
+
+      siblingHash = parent.value.hash
+      currentParent = parent.parent
     }
-    return true
+
+    return path
+  }
+
+  func audit(itemHash: String, auditTrail: [PathHash]) -> Bool {
+    var pathHashes = auditTrail
+    var siblingHash = itemHash
+
+    while !pathHashes.isEmpty {
+      let pathHash = pathHashes.removeFirst()
+      let parentHashes = pathHash.leaf == .left ? (pathHash.hash + siblingHash) : (siblingHash + pathHash.hash)
+      siblingHash = Data(parentHashes.utf8).doubleHashedHex
+    }
+
+    return siblingHash == value.hash
   }
 
   var height: Int {
@@ -68,7 +80,6 @@ public extension MerkleTree {
     }.map{$0 + 1} ?? 1
   }
 }
-
 
 public extension MerkleTree {
   convenience init(hash: String) {

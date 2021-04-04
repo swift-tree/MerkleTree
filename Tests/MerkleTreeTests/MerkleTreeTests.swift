@@ -25,7 +25,7 @@ final class MerkleTreeTests: XCTestCase {
     let rootHash = Data((Data(helloText.utf8).doubleHashedHex + Data(worldText.utf8).doubleHashedHex).utf8).doubleHashedHex
 
     XCTAssertEqual(
-     tree,
+      tree,
       .init(.init(hash: rootHash), .init(blob: Data(helloText.utf8)), .init(blob: Data(worldText.utf8)))
     )
 
@@ -46,7 +46,7 @@ final class MerkleTreeTests: XCTestCase {
     let helloData = Data(helloText.utf8)
     tree = MerkleTree.build(fromBlobs: [helloData]).tree
 
-  //  XCTAssertEqual(tree.find(blob: helloData), tree)
+    //  XCTAssertEqual(tree.find(blob: helloData), tree)
   }
 
   func test_contains_double_root() {
@@ -56,7 +56,7 @@ final class MerkleTreeTests: XCTestCase {
     tree = MerkleTree.build(fromBlobs: [helloText, worldText].map { Data($0.utf8) }).tree
     let rootHash = Data((Data(helloText.utf8).doubleHashedHex + Data(worldText.utf8).doubleHashedHex).utf8)
 
-  //  XCTAssertEqual(tree.find(blob: rootHash), tree)
+    //  XCTAssertEqual(tree.find(blob: rootHash), tree)
   }
 
   func test_contains_double_leaf() {
@@ -65,7 +65,7 @@ final class MerkleTreeTests: XCTestCase {
 
     tree = MerkleTree.build(fromBlobs: [helloText, worldText].map { Data($0.utf8) }).tree
 
- //   XCTAssertEqual(tree.find(blob: Data(helloText.utf8)), .init(blob: Data(helloText.utf8)))
+    //  XCTAssertEqual(tree.find(blob: Data(helloText.utf8)), .init(blob: Data(helloText.utf8)))
   }
 
   func test_contains_massive_leaf() {
@@ -74,7 +74,7 @@ final class MerkleTreeTests: XCTestCase {
 
     tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) }).tree
 
- //   XCTAssertEqual(tree.find(blob: Data("7".utf8)), .init(blob: Data("7".utf8)))
+    //   XCTAssertEqual(tree.find(blob: Data("7".utf8)), .init(blob: Data("7".utf8)))
   }
 
   func test_contains_massive_leaf1() {
@@ -84,10 +84,10 @@ final class MerkleTreeTests: XCTestCase {
 
     tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) }).tree
 
-  //  XCTAssertEqual(tree.find(blob: Data("\(max + 1)".utf8)), .empty)
+    //  XCTAssertEqual(tree.find(blob: Data("\(max + 1)".utf8)), .empty)
   }
 
-  func test_33() {
+  func test_audit() {
     let x = 3
     let phrase = (1 ... pow(2, x).int).map(\.description)
 
@@ -95,15 +95,19 @@ final class MerkleTreeTests: XCTestCase {
     let (output, leaves) = MerkleTree.build(fromBlobs: datum)
     tree = output
 
-   XCTAssertTrue(
-    MerkleTree.proves(
-      blob: Data("7".utf8),
-      hashSet: Dictionary(uniqueKeysWithValues: zip(datum.map(\.doubleHashedHex), leaves)), path: [
-        .right("022BB953B0E601E5D5101328D8B6E4A9BF0C30A82D5D5ADB265E35982201D1A6"),
-        .left("8B91DB63BCCB95A6CB4DA46FE72026615291C719BFDAAB51EFFA87351C80A1F3"),
-        .left("BD63101E1A04D1B648E6AA3B65C60C7CEC444528E363F71E272D0A4EF58D0561")
-      ])
+    let targetHash = Data(7.description.utf8).doubleHashedHex
+
+    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: leaves)
+    XCTAssertEqual(
+      auditTrail,
+      [
+        PathHash(tree.children.right!.children.right!.children.right!.value.hash, leaf: .right),
+        PathHash(tree.children.right!.children.left!.value.hash, leaf: .left),
+        PathHash(tree.children.left!.value.hash, leaf: .left)
+      ]
     )
+
+    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
   }
 
   static var allTests = [
