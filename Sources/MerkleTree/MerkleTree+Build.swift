@@ -58,6 +58,36 @@ public extension MerkleTree {
 
     return path
   }
+  static func duplicate(_ tree: MerkleTree, times: Int) -> MerkleTree {
+    let root = tree
+    var branch = root
+    for _ in 1..<times {
+      let new = MerkleTree(hash: tree.value.hash)
+      branch.children.right = new
+      new.parent = branch
+      branch = new
+    }
+    return root
+  }
+
+  static  func insert(tree: MerkleTree? = nil,  _ first: MerkleTree, _ second: MerkleTree?) -> MerkleTree {
+    let parent = second.flatMap{MerkleTree.createParent(first, $0)}
+      ?? (tree?.height).map{duplicate(first, times: $0)}
+      ?? first
+    guard let tree = tree else {return parent}
+    return MerkleTree.createParent(tree, parent)
+  }
+
+  static func build(fromBlobs: [Data]) -> MerkleTree? {
+    var blobs = fromBlobs
+    var root: MerkleTree? = nil
+    while !blobs.isEmpty {
+      let first = blobs.removeFirst()
+      let second: Data? = blobs.first != nil ? blobs.removeFirst() : nil
+      root = insert(tree: root, MerkleTree(blob: first), second.map{MerkleTree(blob: $0)})
+    }
+    return root
+  }
 
   func audit(itemHash: String, auditTrail: [PathHash]) -> Bool {
     var pathHashes = auditTrail
@@ -73,11 +103,13 @@ public extension MerkleTree {
   }
 
   var height: Int {
-    children.left.flatMap{ left in
-      children.right.flatMap{ right in
-        max(left.height, right.height)
-      }
-    }.map{$0 + 1} ?? 1
+    var sum = 1
+    var rootChildren: TwoWayBinaryTree? = children.left
+    while let left = rootChildren {
+      sum += 1
+      rootChildren = left.children.left
+    }
+    return sum
   }
 }
 
@@ -104,33 +136,12 @@ extension MerkleTree: Hashable where T: Hashable {
 }
 
 public extension MerkleTree {
-  static func createParent(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree? {
+  static func createParent(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
     let leftHash = left.value.hash
     let rightHash = right.value.hash
     let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
     new.add(left, right)
     return new
-  }
-
-  static func build(fromBlobs blobs: [Data]) -> (tree: MerkleTree, leaves: [MerkleTree]) {
-    let datum = blobs.map(MerkleTree.init(blob:))
-    var nodeArray = datum
-
-    while nodeArray.count != 1 {
-      var tmpArray = [MerkleTree]()
-      while !nodeArray.isEmpty {
-        let leftNode = nodeArray.removeFirst()
-        let rightNode = !nodeArray.isEmpty ? nodeArray.removeFirst() : leftNode
-        let new = createParent(leftNode, rightNode)
-        if let new = new {
-          tmpArray.append(new)
-        }
-      }
-
-      nodeArray = tmpArray
-    }
-
-    return (nodeArray[0], datum)
   }
 }
 

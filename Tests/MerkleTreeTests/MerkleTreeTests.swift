@@ -63,17 +63,18 @@ final class MerkleTreeTests: XCTestCase {
     let helloText = "Hello"
     let worldText = "world!"
 
-    tree = MerkleTree.build(fromBlobs: [helloText, worldText].map { Data($0.utf8) }).tree
+    tree = MerkleTree.build(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
 
     //  XCTAssertEqual(tree.find(blob: Data(helloText.utf8)), .init(blob: Data(helloText.utf8)))
   }
 
-  func test_contains_massive_leaf() {
-    let x = 10
-    let phrase = (1 ... pow(2, x).int).map(\.description)
 
-    tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) }).tree
+  func test_contains_massive_4() {
+   let phrase = (1 ... 3).map(\.description)
 
+    tree = MerkleTree.create(blobs: phrase.map { Data($0.utf8) })
+
+    print(tree)
     //   XCTAssertEqual(tree.find(blob: Data("7".utf8)), .init(blob: Data("7".utf8)))
   }
 
@@ -82,12 +83,12 @@ final class MerkleTreeTests: XCTestCase {
     let max = pow(2, x).int
     let phrase = (1 ... max).map(\.description)
 
-    tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) }).tree
+    tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) })
 
     //  XCTAssertEqual(tree.find(blob: Data("\(max + 1)".utf8)), .empty)
   }
 
-  func test_audit() {
+  func test_audit() throws {
     let x = 3
     let phrase = (1 ... pow(2, x).int).map(\.description)
 
@@ -101,9 +102,31 @@ final class MerkleTreeTests: XCTestCase {
     XCTAssertEqual(
       auditTrail,
       [
-        PathHash(tree.children.right!.children.right!.children.right!.value.hash, leaf: .right),
-        PathHash(tree.children.right!.children.left!.value.hash, leaf: .left),
-        PathHash(tree.children.left!.value.hash, leaf: .left)
+        PathHash(try XCTUnwrap(tree.children.right?.children.right?.children.right?.value.hash), leaf: .right),
+        PathHash(try XCTUnwrap(tree.children.right?.children.left?.value.hash), leaf: .left),
+        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
+      ]
+    )
+
+    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
+  }
+
+  func test_audit1() throws {
+    let phrase = (1 ... 5).map(\.description)
+
+    let datum = phrase.map { Data($0.utf8) }
+    let (output, leaves) = MerkleTree.build(fromBlobs: datum)
+    tree = output
+
+    let targetHash = Data(7.description.utf8).doubleHashedHex
+
+    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: leaves)
+    XCTAssertEqual(
+      auditTrail,
+      [
+        PathHash(try XCTUnwrap(tree.children.right?.children.right?.children.right?.value.hash), leaf: .right),
+        PathHash(try XCTUnwrap(tree.children.right?.children.left?.value.hash), leaf: .left),
+        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
       ]
     )
 
