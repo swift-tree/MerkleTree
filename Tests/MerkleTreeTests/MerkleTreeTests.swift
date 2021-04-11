@@ -1,8 +1,6 @@
 import BinaryTree
-import CryptoKit
 import MerkleTree
 import XCTest
-
 
 final class MerkleTreeTests: XCTestCase {
   var tree: MerkleTree!
@@ -21,7 +19,7 @@ final class MerkleTreeTests: XCTestCase {
     let helloText = "Hello"
     let worldText = "world!"
 
-    tree = MerkleTree.create(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
+    tree = MerkleTree.build(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
     let rootHash = Data((Data(helloText.utf8).doubleHashedHex + Data(worldText.utf8).doubleHashedHex).utf8).doubleHashedHex
 
     XCTAssertEqual(
@@ -41,12 +39,12 @@ final class MerkleTreeTests: XCTestCase {
   func test_toPowersOfTwo_35() {
     XCTAssertEqual(MerkleTree.toPowersOfTwo(35), [5, 1, 0])
   }
-
-  func test_splitToSumOfPowerOfTwo() {
-    XCTAssertEqual(MerkleTree.splitToSumOfPowerOfTwo((1 ... 35).map{$0}), [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                                                                     18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
-                                                                    [1, 2], [1]])
-  }
+//
+//  func test_splitToSumOfPowerOfTwo() {
+//    XCTAssertEqual(MerkleTree.splitToSumOfPowerOfTwo((1 ... 35).map{$0}), [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+//                                                                     18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+//                                                                    [1, 2], [1]])
+//  }
 
 
   func test_makeSiblings() {
@@ -67,22 +65,24 @@ final class MerkleTreeTests: XCTestCase {
     XCTAssertEqual(tree.height, x + 1)
   }
 
-  func test_create_height_plus_1() {
+  func test_build_height_plus_1() {
     let x = 2
     let end = (1 << x) + 1
     let phrase = (1 ... end).map(\.description)
-    tree = MerkleTree.create(fromBlobs: phrase.map { Data($0.utf8) })
+    tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) })
 
     XCTAssertEqual(tree.value.hash, "51B6578B40B8E48D424CFDFF74B17F8CF85B25CE7081E89E5BA05E6CEE208E54")
     XCTAssertEqual(tree.height, x + 2)
   }
 
-  func test_contains_single_root() {
-    let helloText = "Hello"
-    let helloData = Data(helloText.utf8)
-    tree = MerkleTree.create(fromBlobs: [helloData])
+  func test_build_height_minus_1() {
+    let x = 2
+    let end = (1 << x) - 1
+    let phrase = (1 ... end).map(\.description)
+    tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) })
 
-    //  XCTAssertEqual(tree.find(blob: helloData), tree)
+    XCTAssertEqual(tree.value.hash, "77FCD3566DA22AB55387EB92BF151BFDB6E76EB4E5B1701023C00DCC8E8F44F5")
+    XCTAssertEqual(tree.height, x + 1)
   }
 
   func test_1() {
@@ -90,49 +90,13 @@ final class MerkleTreeTests: XCTestCase {
     let worldText = "world!"
 
     tree = MerkleTree
-      .create(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
+      .build(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
       .fillParent(times: 3)
   }
 
 
-  func test_contains_double_root() {
-    let helloText = "Hello"
-    let worldText = "world!"
-
-    tree = MerkleTree.create(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
-    let rootHash = Data((Data(helloText.utf8).doubleHashedHex + Data(worldText.utf8).doubleHashedHex).utf8)
-
-    //  XCTAssertEqual(tree.find(blob: rootHash), tree)
-  }
-
-  func test_contains_double_leaf() {
-    let helloText = "Hello"
-    let worldText = "world!"
-
-    tree = MerkleTree.create(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
-
-    //  XCTAssertEqual(tree.find(blob: Data(helloText.utf8)), .init(blob: Data(helloText.utf8)))
-  }
 
 
-  func test_contains_massive_4() {
-   let phrase = (1 ... 3).map(\.description)
-
-    tree = MerkleTree.create(fromBlobs: phrase.map { Data($0.utf8) })
-
-    print(tree)
-    //   XCTAssertEqual(tree.find(blob: Data("7".utf8)), .init(blob: Data("7".utf8)))
-  }
-
-  func test_contains_massive_leaf1() {
-    let x = 10
-    let max = 1 << x
-    let phrase = (1 ... max).map(\.description)
-
-    tree = MerkleTree.create(fromBlobs: phrase.map { Data($0.utf8) })
-
-    //  XCTAssertEqual(tree.find(blob: Data("\(max + 1)".utf8)), .empty)
-  }
 
 //  func test_audit() throws {
 //    let x = 3

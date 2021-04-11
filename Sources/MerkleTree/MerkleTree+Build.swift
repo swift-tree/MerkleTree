@@ -63,7 +63,7 @@ public extension MerkleTree {
     var branch = self
     for _ in 0..<times {
       let new = MerkleTree(hash: self.value.hash)
-      new.add(nil, branch)
+      new.add(left: nil, right: branch)
       branch.parent = new
       branch = new
     }
@@ -78,13 +78,13 @@ public extension MerkleTree {
       .map{binary.count - $0.offset - 1}
   }
 
-  static func splitToSumOfPowerOfTwo<T>(_ arr: [T]) -> [ArraySlice<T>] {
-     toPowersOfTwo(arr.count)
-      .map{1 << $0}
-      .map{arr.prefix($0)}
-  }
+//  static func splitToSumOfPowerOfTwo<T>(_ arr: [T]) -> [ArraySlice<T>] {
+//     toPowersOfTwo(arr.count)
+//      .map{1 << $0}
+//      .map{arr.prefix($0)}
+//  }
 
-  static func create(fromBlobs: [Data]) -> MerkleTree {
+  static func build(fromBlobs: [Data]) -> MerkleTree {
     let leaves = fromBlobs.map{MerkleTree(blob: $0)}
     let powers = toPowersOfTwo(leaves.count)
     var roots = [MerkleTree]()
@@ -169,7 +169,7 @@ public extension MerkleTree {
     let leftHash = left.value.hash
     let rightHash = right.value.hash
     let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
-    new.add(left, right.fillParent(times: heightDifference))
+    new.add(left: left, right: right.fillParent(times: heightDifference))
     return new
   }
 }
@@ -185,7 +185,7 @@ public class TwoWayBinaryTree<T> {
     children = (left, right)
   }
 
-  public func add(_ left: TwoWayBinaryTree<T>?, _ right:TwoWayBinaryTree<T>?) {
+  public func add(left: TwoWayBinaryTree<T>?, right:TwoWayBinaryTree<T>?) {
     children = (left, right)
     left?.parent = self
     right?.parent = self
