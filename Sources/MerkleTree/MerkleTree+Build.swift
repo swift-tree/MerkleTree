@@ -91,8 +91,7 @@ public extension MerkleTree {
 
     for power in powers {
       if power == 0, let last = leaves.last  {
-        let height = power + 1
-        roots.append(last.fillParent(times: height))
+        roots.append(last)
       } else {
         let firstN = leaves.prefix(1 << power)
         roots.append(recursiveFullSiblings(nodes: firstN))
@@ -165,10 +164,12 @@ extension MerkleTree: Hashable where T: Hashable {
 
 public extension MerkleTree {
   static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
+    let heightDifference = left.height - right.height
+
     let leftHash = left.value.hash
     let rightHash = right.value.hash
     let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
-    new.add(left, right)
+    new.add(left, right.fillParent(times: heightDifference))
     return new
   }
 }
@@ -179,9 +180,9 @@ public class TwoWayBinaryTree<T> {
   public weak var parent: TwoWayBinaryTree<T>?
   public var children: (left: TwoWayBinaryTree<T>?, right: TwoWayBinaryTree<T>?)
 
-  public init(_ value: T, _ left: TwoWayBinaryTree<T>? = nil, _ right:TwoWayBinaryTree<T>? = nil) {
+  public init(_ value: T, _ left: TwoWayBinaryTree<T>? = nil, _ right: TwoWayBinaryTree<T>? = nil) {
     self.value = value
-    children = (nil, nil)
+    children = (left, right)
   }
 
   public func add(_ left: TwoWayBinaryTree<T>?, _ right:TwoWayBinaryTree<T>?) {

@@ -48,23 +48,33 @@ final class MerkleTreeTests: XCTestCase {
                                                                     [1, 2], [1]])
   }
 
+
+  func test_makeSiblings() {
+    let right = MerkleTree(hash: "KISA")
+    let left = MerkleTree(.init(hash: "UZUN 1"), MerkleTree(hash: "UZUN 2"),  nil)
+
+    tree =  MerkleTree.makeSiblings(left, right)
+
+    XCTAssertEqual(tree.height, 3)
+  }
+
   func test_build_height_massive() {
-    let x = 15
+    let x = 10
     let phrase = (1 ... 1 << x).map(\.description)
-   // tree = MerkleTree.build(fromBlobs: phrase.map { Data($0.utf8) })
     let fullTree = MerkleTree.recursiveFullSiblings(nodes: .init(phrase.map { Data($0.utf8) }.map{MerkleTree(blob: $0)}))
     tree = fullTree
 
     XCTAssertEqual(tree.height, x + 1)
   }
 
-  func test_create_height_massive() {
-    let x = 3
-    let end = (1 << x)
+  func test_create_height_plus_1() {
+    let x = 2
+    let end = (1 << x) + 1
     let phrase = (1 ... end).map(\.description)
     tree = MerkleTree.create(fromBlobs: phrase.map { Data($0.utf8) })
 
-    XCTAssertEqual(tree.height, x + 1)
+    XCTAssertEqual(tree.value.hash, "51B6578B40B8E48D424CFDFF74B17F8CF85B25CE7081E89E5BA05E6CEE208E54")
+    XCTAssertEqual(tree.height, x + 2)
   }
 
   func test_contains_single_root() {
