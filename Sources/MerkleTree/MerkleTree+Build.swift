@@ -58,35 +58,63 @@ public extension MerkleTree {
 
     return path
   }
-  static func duplicate(_ tree: MerkleTree, times: Int) -> MerkleTree {
-    let root = tree
-    var branch = root
-    for _ in 1..<times {
-      let new = MerkleTree(hash: tree.value.hash)
-      branch.children.right = new
-      new.parent = branch
+
+  func fillParent(times: Int) -> MerkleTree {
+    var branch = self
+    for _ in 0..<times {
+      let new = MerkleTree(hash: self.value.hash)
+      new.add(nil, branch)
+      branch.parent = new
       branch = new
     }
-    return root
+    return branch
   }
 
-  static  func insert(tree: MerkleTree? = nil,  _ first: MerkleTree, _ second: MerkleTree?) -> MerkleTree {
-    let parent = second.flatMap{MerkleTree.createParent(first, $0)}
-      ?? (tree?.height).map{duplicate(first, times: $0)}
-      ?? first
-    guard let tree = tree else {return parent}
-    return MerkleTree.createParent(tree, parent)
+  static func toPowersOfTwo(_ num: Int) -> [Int] {
+    let binary = String(num, radix: 2)
+    return binary
+      .enumerated()
+      .filter{$1 == "1"}
+      .map{binary.count - $0.offset - 1}
   }
 
-  static func build(fromBlobs: [Data]) -> MerkleTree? {
-    var blobs = fromBlobs
-    var root: MerkleTree? = nil
-    while !blobs.isEmpty {
-      let first = blobs.removeFirst()
-      let second: Data? = blobs.first != nil ? blobs.removeFirst() : nil
-      root = insert(tree: root, MerkleTree(blob: first), second.map{MerkleTree(blob: $0)})
+  static func splitToSumOfPowerOfTwo<T>(_ arr: [T]) -> [ArraySlice<T>] {
+     toPowersOfTwo(arr.count)
+      .map{1 << $0}
+      .map{arr.prefix($0)}
+  }
+
+  static func create(fromBlobs: [Data]) -> MerkleTree {
+    let leaves = fromBlobs.map{MerkleTree(blob: $0)}
+    let powers = toPowersOfTwo(leaves.count)
+    var roots = [MerkleTree]()
+
+    for power in powers {
+      if power == 0, let last = leaves.last  {
+        let height = power + 1
+        roots.append(last.fillParent(times: height))
+      } else {
+        let firstN = leaves.prefix(1 << power)
+        roots.append(recursiveFullSiblings(nodes: firstN))
+      }
     }
-    return root
+
+    return recursiveFullSiblings(nodes: .init(roots))
+  }
+
+  static func recursiveFullSiblings(nodes: ArraySlice<MerkleTree>) -> MerkleTree {
+    let count = nodes.count
+    guard count > 0 else {fatalError()}
+    if count == 1, let first = nodes.first {return first}
+    if count == 2, let first = nodes.first, let last = nodes.last {
+      return makeSiblings(first, last)
+    } else {
+      let half = count / 2
+      return makeSiblings(
+        recursiveFullSiblings(nodes: nodes.prefix(half)),
+        recursiveFullSiblings(nodes: nodes.suffix(count - half))
+      )
+    }
   }
 
   func audit(itemHash: String, auditTrail: [PathHash]) -> Bool {
@@ -136,7 +164,7 @@ extension MerkleTree: Hashable where T: Hashable {
 }
 
 public extension MerkleTree {
-  static func createParent(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
+  static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
     let leftHash = left.value.hash
     let rightHash = right.value.hash
     let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
