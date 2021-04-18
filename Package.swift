@@ -13,17 +13,15 @@ let package = Package(
       targets: ["MerkleTree"]
     ),
   ],
-  dependencies: [
-    //    .package(url: "https://github.com/swift-tree/BinaryTree.git", .exact("1.0.2")),
-  ],
+  dependencies: [],
   targets: [
     .target(
       name: "MerkleTree",
-      dependencies: [] // "BinaryTree"
+      dependencies: []
     ),
     .testTarget(
       name: "MerkleTreeTests",
-      dependencies: ["MerkleTree"] // "BinaryTree"
+      dependencies: ["MerkleTree"]
     ),
   ]
 )
