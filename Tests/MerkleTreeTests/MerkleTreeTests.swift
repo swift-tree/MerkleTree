@@ -287,7 +287,22 @@ final class MerkleTreeTests: XCTestCase {
   }
 
   static var allTests = [
-    ("test_build", test_build),
+    ("test_build_two_leaves", test_build_two_leaves),
+    ("test_toPowersOfTwo_intMax", test_toPowersOfTwo_intMax),
+    ("test_toPowersOfTwo_35", test_toPowersOfTwo_35),
+    ("test_build_height_massive", test_build_height_massive),
+    ("test_build_height_plus_1", test_build_height_plus_1),
+    ("test_audit_powerOf2_3_minus1", test_audit_powerOf2_3_minus1),
+    ("test_audit_powerOf2_3_minus2", test_audit_powerOf2_3_minus2),
+    ("test_build_height_minus_1", test_build_height_minus_1),
+    ("test_build_height_3minus_2", test_build_height_3minus_2),
+    ("test_audit_powerOf2_3", test_audit_powerOf2_3),
+    ("test_auditTrail_powerOf2_2_plus1_lastTarget", test_auditTrail_powerOf2_2_plus1_lastTarget),
+    ("test_auditTrail_powerOf2_3_minus1_lastTarget", test_auditTrail_powerOf2_3_minus1_lastTarget),
+    ("test_auditTrail_powerOf2_3_minus1_6th", test_auditTrail_powerOf2_3_minus1_6th),
+    ("test_audit_5", test_auditTrail_powerOf2_3_minus1_lastTarget),
+    ("test_audit_7", test_audit_7),
+    ("test_audit_6", test_audit_6),
   ]
 }
 
