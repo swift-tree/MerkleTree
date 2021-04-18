@@ -11,10 +11,8 @@ public extension MerkleTree {
   convenience init(blob: Data) {
     self.init(MerkleNode(blob: blob))
   }
-}
 
-extension MerkleTree {
-  public var height: Int {
+  var height: Int {
     var sum = 1
     var rootChildren: TwoWayBinaryTree? = children.left
     while let left = rootChildren {
@@ -35,7 +33,6 @@ extension MerkleTree: Hashable where T: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(value)
   }
-
 }
 
 extension Digest {
@@ -48,6 +45,7 @@ extension Digest {
 public extension Data {
   private var hashedHex: String { SHA256.hash(data: self).hexStr }
   var doubleHashedHex: String { SHA256.hash(data: Data(hashedHex.utf8)).hexStr }
+//  var doubleHashedHex: String { String.init(data: self, encoding: .utf8)! }
 }
 
 public struct MerkleNode: Hashable {

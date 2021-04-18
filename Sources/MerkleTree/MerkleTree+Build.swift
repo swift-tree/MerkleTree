@@ -25,6 +25,7 @@ public extension MerkleTree {
   }
 
   private func createParent(times: Int) -> MerkleTree {
+    assert(times >= 0, "times shouldn't be negative")
     var tree = self
     let hash = value.hash
     for _ in 0..<times {
@@ -45,16 +46,17 @@ public extension MerkleTree {
   }
 
   static func build(fromBlobs: [Data]) -> MerkleTree {
-    let leaves = fromBlobs.map(MerkleTree.init(blob: ))
-    let roots: [MerkleTree] = toPowersOfTwo(leaves.count)
-      .map { power in
-        if power == 0, let last = leaves.last  {
-          return last
-        } else {
-          let firstN = leaves.prefix(1 << power)
-          return merge(firstN)
-        }
+    var leaves = ArraySlice(fromBlobs.map(MerkleTree.init(blob: )))
+    var roots = [MerkleTree]()
+    for power in toPowersOfTwo(leaves.count) {
+      if power == 0, let last = leaves.last  {
+        roots.append(last)
+      } else {
+        guard !leaves.isEmpty else {continue}
+        roots.append(merge(leaves.prefix(1 << power)))
+        leaves.removeFirst(1 << power)
       }
+    }
 
     return merge(ArraySlice(roots))
   }
@@ -91,8 +93,8 @@ public extension MerkleTree {
 
     let leftHash = left.value.hash
     let rightHash = right.value.hash
-    let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
-    new.add(left: left, right: right.createParent(times: heightDifference))
-    return new
+    let parent = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
+    parent.add(left: left, right: right.createParent(times: heightDifference))
+    return parent
   }
 }
