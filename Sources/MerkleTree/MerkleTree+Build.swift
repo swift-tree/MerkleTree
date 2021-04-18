@@ -2,22 +2,6 @@ import BinaryTree
 import CryptoKit
 import Foundation
 
-//  func find(blob: Data) -> Self {
-//    switch self {
-//    case .empty:
-//      return .empty
-//    case .node(value: .init(blob: blob), _):
-//      return self
-//    case .node(value: _, let children):
-//      let left = children.left.find(blob: blob)
-//      if case .empty = left {
-//        return children.right.find(blob: blob)
-//      } else {
-//        return left
-//      }
-//    }
-//  }
-//}
 extension MerkleTree: CustomStringConvertible {
   public var description: String {
     "\(value.hash) \(String(describing: children.left?.description)) \(String(describing: children.right?.description))"
@@ -42,20 +26,20 @@ public extension MerkleTree {
 
     var currentParent: MerkleTree? = targetLeave.parent
     var siblingHash = itemHash
-    while let parent = currentParent,
-          let leftHash = parent.children.left?.value.hash,
-          let rightHash = parent.children.right?.value.hash {
-
-      if leftHash == siblingHash {
-        path.append(PathHash(rightHash, leaf: .right))
-      } else if rightHash == siblingHash {
-        path.append(PathHash(leftHash, leaf: .left))
+    while let parent = currentParent {
+      if let leftHash = parent.children.left?.value.hash {
+        if let rightHash = parent.children.right?.value.hash {
+          if leftHash == siblingHash {
+            path.append(PathHash(rightHash, leaf: .right))
+          } else if rightHash == siblingHash {
+            path.append(PathHash(leftHash, leaf: .left))
+          }
+        }
       }
 
       siblingHash = parent.value.hash
       currentParent = parent.parent
     }
-
     return path
   }
 
@@ -103,12 +87,12 @@ public extension MerkleTree {
 
   static func recursiveFullSiblings(nodes: ArraySlice<MerkleTree>) -> MerkleTree {
     let count = nodes.count
-    guard count > 0 else {fatalError()}
+    if count == 0 {fatalError()}
     if count == 1, let first = nodes.first {return first}
     if count == 2, let first = nodes.first, let last = nodes.last {
       return makeSiblings(first, last)
     } else {
-      let half = count / 2
+      let half = (count / 2) + (count % 2)
       return makeSiblings(
         recursiveFullSiblings(nodes: nodes.prefix(half)),
         recursiveFullSiblings(nodes: nodes.suffix(count - half))

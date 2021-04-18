@@ -75,6 +75,17 @@ final class MerkleTreeTests: XCTestCase {
     XCTAssertEqual(tree.height, x + 2)
   }
 
+  func test_audit_powerOf2_3_minus1() throws {
+    let x = 3
+    let end = (1 << x) - 1
+    let phrase = (1 ... end).map(\.description)
+
+    let datum = phrase.map { Data($0.utf8) }
+    tree = MerkleTree.build(fromBlobs: datum)
+
+    XCTAssertEqual(tree.height, 5)
+  }
+
   func test_build_height_minus_1() {
     let x = 2
     let end = (1 << x) - 1
@@ -85,7 +96,7 @@ final class MerkleTreeTests: XCTestCase {
     XCTAssertEqual(tree.height, x + 1)
   }
 
-  func test_1() {
+  func test_2323() {
     let helloText = "Hello"
     let worldText = "world!"
 
@@ -94,32 +105,74 @@ final class MerkleTreeTests: XCTestCase {
       .fillParent(times: 3)
   }
 
+  func test_audit_powerOf2_3() throws {
+    let x = 3
+    let end = (1 << x)
+    let phrase = (1 ... end).map(\.description)
 
+    let datum = phrase.map { Data($0.utf8) }
+    tree = MerkleTree.build(fromBlobs: datum)
 
+    let targetHash = Data(7.description.utf8).doubleHashedHex
+    let targetLeave = try XCTUnwrap(tree.children.right?.children.right?.children.left)
+    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: [targetLeave])
 
+    XCTAssertEqual(
+      auditTrail,
+      [
+        PathHash(try XCTUnwrap(tree.children.right?.children.right?.children.right?.value.hash), leaf: .right),
+        PathHash(try XCTUnwrap(tree.children.right?.children.left?.value.hash), leaf: .left),
+        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
+      ]
+    )
 
-//  func test_audit() throws {
-//    let x = 3
-//    let phrase = (1 ... pow(2, x).int).map(\.description)
-//
-//    let datum = phrase.map { Data($0.utf8) }
-//    let (output, leaves) = MerkleTree.build(fromBlobs: datum)
-//    tree = output
-//
-//    let targetHash = Data(7.description.utf8).doubleHashedHex
-//
-//    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: leaves)
-//    XCTAssertEqual(
-//      auditTrail,
-//      [
-//        PathHash(try XCTUnwrap(tree.children.right?.children.right?.children.right?.value.hash), leaf: .right),
-//        PathHash(try XCTUnwrap(tree.children.right?.children.left?.value.hash), leaf: .left),
-//        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
-//      ]
-//    )
-//
-//    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
-//  }
+    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
+  }
+
+  func test_audit_powerOf2_2_plus1_lastTarget() throws {
+    let x = 2
+    let end = (1 << x) + 1
+    let phrase = (1 ... end).map(\.description)
+
+    let datum = phrase.map { Data($0.utf8) }
+    tree = MerkleTree.build(fromBlobs: datum)
+
+    let targetHash = Data(5.description.utf8).doubleHashedHex
+    let targetLeave = try XCTUnwrap(tree.children.right?.children.right?.children.right)
+    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: [targetLeave])
+
+    XCTAssertEqual(
+      auditTrail,
+      [
+        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
+      ]
+    )
+
+    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
+  }
+
+  func test_audit_powerOf2_3_minus1_lastTarget() throws {
+    let x = 3
+    let end = (1 << x) - 1
+    let phrase = (1 ... end).map(\.description)
+
+    let datum = phrase.map { Data($0.utf8) }
+    tree = MerkleTree.build(fromBlobs: datum)
+    print(tree.height)
+    print(tree.height)
+    let targetHash = Data(7.description.utf8).doubleHashedHex
+    let targetLeave = try XCTUnwrap(tree.children.right?.children.right?.children.right?.children.right)
+    let auditTrail = tree.getAuditTrail(for: targetHash, leaves: [targetLeave])
+
+    XCTAssertEqual(
+      auditTrail,
+      [
+        PathHash(try XCTUnwrap(tree.children.left?.value.hash), leaf: .left)
+      ]
+    )
+
+    XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
+  }
 //
 //  func test_audit1() throws {
 //    let phrase = (1 ... 5).map(\.description)
@@ -152,4 +205,23 @@ private extension Decimal {
   var int: Int {
     NSDecimalNumber(decimal: self).intValue
   }
+}
+
+extension MerkleTree {
+    func find(blob: Data) -> MerkleTree {
+fatalError()
+//      switch self {
+//      case .empty:
+//        return .empty
+//      case .node(value: .init(blob: blob), _):
+//        return self
+//      case .node(value: _, let children):
+//        let left = children.left.find(blob: blob)
+//        if case .empty = left {
+//          return children.right.find(blob: blob)
+//        } else {
+//          return left
+//        }
+//      }
+    }
 }
