@@ -3,7 +3,7 @@ public struct PathHash: Hashable {
   public let hash: String
   public let leaf: Leaf
 
-  public init(_ hash: String, leaf: Leaf){
+  public init(_ hash: String, leaf: Leaf) {
     self.hash = hash
     self.leaf = leaf
   }

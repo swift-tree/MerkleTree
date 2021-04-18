@@ -9,7 +9,7 @@ public class TwoWayBinaryTree<T> {
     children = (left, right)
   }
 
-  func add(left: TwoWayBinaryTree<T>? = nil, right:TwoWayBinaryTree<T>? = nil) {
+  func add(left: TwoWayBinaryTree<T>? = nil, right: TwoWayBinaryTree<T>? = nil) {
     children = (left, right)
     left?.parent = self
     right?.parent = self

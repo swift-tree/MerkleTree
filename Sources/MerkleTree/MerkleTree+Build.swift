@@ -28,7 +28,7 @@ public extension MerkleTree {
     assert(times >= 0, "times shouldn't be negative")
     var tree = self
     let hash = value.hash
-    for _ in 0..<times {
+    for _ in 0 ..< times {
       let parent = MerkleTree(hash: hash)
       parent.add(right: tree)
       tree.parent = parent
@@ -41,18 +41,18 @@ public extension MerkleTree {
     let binary = String(num, radix: 2)
     return binary
       .enumerated()
-      .filter{$1 == "1"}
-      .map{binary.count - $0.offset - 1}
+      .filter { $1 == "1" }
+      .map { binary.count - $0.offset - 1 }
   }
 
   static func build(fromBlobs: [Data]) -> MerkleTree {
-    var leaves = ArraySlice(fromBlobs.map(MerkleTree.init(blob: )))
+    var leaves = ArraySlice(fromBlobs.map(MerkleTree.init(blob:)))
     var roots = [MerkleTree]()
     for power in toPowersOfTwo(leaves.count) {
-      if power == 0, let last = leaves.last  {
+      if power == 0, let last = leaves.last {
         roots.append(last)
       } else {
-        guard !leaves.isEmpty else {continue}
+        guard !leaves.isEmpty else { continue }
         roots.append(merge(leaves.prefix(1 << power)))
         leaves.removeFirst(1 << power)
       }
@@ -64,7 +64,7 @@ public extension MerkleTree {
   static func merge(_ nodes: ArraySlice<MerkleTree>) -> MerkleTree {
     let count = nodes.count
     assert(count != 0, "at least one node should be present")
-    if count == 1, let first = nodes.first {return first}
+    if count == 1, let first = nodes.first { return first }
     if count == 2, let first = nodes.first, let last = nodes.last {
       return makeSiblings(first, last)
     } else {
@@ -85,10 +85,8 @@ public extension MerkleTree {
 
     return siblingHash == value.hash
   }
-}
 
-public extension MerkleTree {
-  static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
+  private static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
     let heightDifference = left.height - right.height
 
     let leftHash = left.value.hash
