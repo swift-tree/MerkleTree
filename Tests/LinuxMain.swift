@@ -1,6 +1,6 @@
 import XCTest
 
-import ExpressionTreeTests
+import MerkleTreeTests
 
 var tests = [XCTestCaseEntry]()
 tests += MerkleTreeTests.allTests()

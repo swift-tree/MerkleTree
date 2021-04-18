@@ -24,7 +24,9 @@ final class MerkleTreeTests: XCTestCase {
 
     XCTAssertEqual(
       tree,
-      .init(.init(hash: rootHash), .init(blob: Data(helloText.utf8)), .init(blob: Data(worldText.utf8)))
+      .init(.init(hash: rootHash),
+            left: .init(blob: Data(helloText.utf8)),
+            right: .init(blob: Data(worldText.utf8)))
     )
 
     XCTAssertEqual(tree.height, 2)
@@ -39,17 +41,10 @@ final class MerkleTreeTests: XCTestCase {
   func test_toPowersOfTwo_35() {
     XCTAssertEqual(MerkleTree.toPowersOfTwo(35), [5, 1, 0])
   }
-//
-//  func test_splitToSumOfPowerOfTwo() {
-//    XCTAssertEqual(MerkleTree.splitToSumOfPowerOfTwo((1 ... 35).map{$0}), [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-//                                                                     18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
-//                                                                    [1, 2], [1]])
-//  }
-
 
   func test_makeSiblings() {
     let right = MerkleTree(hash: "KISA")
-    let left = MerkleTree(.init(hash: "UZUN 1"), MerkleTree(hash: "UZUN 2"),  nil)
+    let left = MerkleTree(.init(hash: "UZUN 1"), left: MerkleTree(hash: "UZUN 2"),  right: nil)
 
     tree =  MerkleTree.makeSiblings(left, right)
 
@@ -59,7 +54,8 @@ final class MerkleTreeTests: XCTestCase {
   func test_build_height_massive() {
     let x = 10
     let phrase = (1 ... 1 << x).map(\.description)
-    let fullTree = MerkleTree.recursiveFullSiblings(nodes: .init(phrase.map { Data($0.utf8) }.map{MerkleTree(blob: $0)}))
+    let fullTree = MerkleTree.merge(.init(phrase.map { Data($0.utf8) }
+                                            .map{MerkleTree(blob: $0)}))
     tree = fullTree
 
     XCTAssertEqual(tree.height, x + 1)
@@ -94,15 +90,6 @@ final class MerkleTreeTests: XCTestCase {
 
     XCTAssertEqual(tree.value.hash, "77FCD3566DA22AB55387EB92BF151BFDB6E76EB4E5B1701023C00DCC8E8F44F5")
     XCTAssertEqual(tree.height, x + 1)
-  }
-
-  func test_2323() {
-    let helloText = "Hello"
-    let worldText = "world!"
-
-    tree = MerkleTree
-      .build(fromBlobs: [helloText, worldText].map { Data($0.utf8) })
-      .fillParent(times: 3)
   }
 
   func test_audit_powerOf2_3() throws {

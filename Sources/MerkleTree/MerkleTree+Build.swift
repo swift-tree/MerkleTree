@@ -1,23 +1,4 @@
-import BinaryTree
-import CryptoKit
 import Foundation
-
-extension MerkleTree: CustomStringConvertible {
-  public var description: String {
-    "\(value.hash) \(String(describing: children.left?.description)) \(String(describing: children.right?.description))"
-  }
-}
-
-public struct PathHash: Hashable {
-  public enum Leaf { case left, right }
-  public let hash: String
-  public let leaf: Leaf
-
-  public init(_ hash: String, leaf: Leaf){
-    self.hash = hash
-    self.leaf = leaf
-  }
-}
 
 public extension MerkleTree {
   func getAuditTrail(for itemHash: String, leaves: [MerkleTree]) -> [PathHash] {
@@ -43,15 +24,16 @@ public extension MerkleTree {
     return path
   }
 
-  func fillParent(times: Int) -> MerkleTree {
-    var branch = self
+  private func createParent(times: Int) -> MerkleTree {
+    var tree = self
+    let hash = value.hash
     for _ in 0..<times {
-      let new = MerkleTree(hash: self.value.hash)
-      new.add(left: nil, right: branch)
-      branch.parent = new
-      branch = new
+      let parent = MerkleTree(hash: hash)
+      parent.add(right: tree)
+      tree.parent = parent
+      tree = parent
     }
-    return branch
+    return tree
   }
 
   static func toPowersOfTwo(_ num: Int) -> [Int] {
@@ -62,41 +44,30 @@ public extension MerkleTree {
       .map{binary.count - $0.offset - 1}
   }
 
-//  static func splitToSumOfPowerOfTwo<T>(_ arr: [T]) -> [ArraySlice<T>] {
-//     toPowersOfTwo(arr.count)
-//      .map{1 << $0}
-//      .map{arr.prefix($0)}
-//  }
-
   static func build(fromBlobs: [Data]) -> MerkleTree {
-    let leaves = fromBlobs.map{MerkleTree(blob: $0)}
-    let powers = toPowersOfTwo(leaves.count)
-    var roots = [MerkleTree]()
-
-    for power in powers {
-      if power == 0, let last = leaves.last  {
-        roots.append(last)
-      } else {
-        let firstN = leaves.prefix(1 << power)
-        roots.append(recursiveFullSiblings(nodes: firstN))
+    let leaves = fromBlobs.map(MerkleTree.init(blob: ))
+    let roots: [MerkleTree] = toPowersOfTwo(leaves.count)
+      .map { power in
+        if power == 0, let last = leaves.last  {
+          return last
+        } else {
+          let firstN = leaves.prefix(1 << power)
+          return merge(firstN)
+        }
       }
-    }
 
-    return recursiveFullSiblings(nodes: .init(roots))
+    return merge(ArraySlice(roots))
   }
 
-  static func recursiveFullSiblings(nodes: ArraySlice<MerkleTree>) -> MerkleTree {
+  static func merge(_ nodes: ArraySlice<MerkleTree>) -> MerkleTree {
     let count = nodes.count
-    if count == 0 {fatalError()}
+    assert(count != 0, "at least one node should be present")
     if count == 1, let first = nodes.first {return first}
     if count == 2, let first = nodes.first, let last = nodes.last {
       return makeSiblings(first, last)
     } else {
       let half = (count / 2) + (count % 2)
-      return makeSiblings(
-        recursiveFullSiblings(nodes: nodes.prefix(half)),
-        recursiveFullSiblings(nodes: nodes.suffix(count - half))
-      )
+      return makeSiblings(merge(nodes.prefix(half)), merge(nodes.suffix(count - half)))
     }
   }
 
@@ -112,38 +83,6 @@ public extension MerkleTree {
 
     return siblingHash == value.hash
   }
-
-  var height: Int {
-    var sum = 1
-    var rootChildren: TwoWayBinaryTree? = children.left
-    while let left = rootChildren {
-      sum += 1
-      rootChildren = left.children.left
-    }
-    return sum
-  }
-}
-
-public extension MerkleTree {
-  convenience init(hash: String) {
-    self.init(MerkleNode(hash: hash))
-  }
-
-  convenience init(blob: Data) {
-    self.init(MerkleNode(blob: blob))
-  }
-}
-
-extension MerkleTree: Equatable where T: Equatable {
-  public static func == (lhs: MerkleTree, rhs: MerkleTree) -> Bool {
-    lhs.value == rhs.value
-  }
-}
-
-extension MerkleTree: Hashable where T: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(value)
-  }
 }
 
 public extension MerkleTree {
@@ -153,26 +92,7 @@ public extension MerkleTree {
     let leftHash = left.value.hash
     let rightHash = right.value.hash
     let new = MerkleTree(hash: Data((leftHash + rightHash).utf8).doubleHashedHex)
-    new.add(left: left, right: right.fillParent(times: heightDifference))
+    new.add(left: left, right: right.createParent(times: heightDifference))
     return new
   }
 }
-
-public class TwoWayBinaryTree<T> {
-  public var value: T
-
-  public weak var parent: TwoWayBinaryTree<T>?
-  public var children: (left: TwoWayBinaryTree<T>?, right: TwoWayBinaryTree<T>?)
-
-  public init(_ value: T, _ left: TwoWayBinaryTree<T>? = nil, _ right: TwoWayBinaryTree<T>? = nil) {
-    self.value = value
-    children = (left, right)
-  }
-
-  public func add(left: TwoWayBinaryTree<T>?, right:TwoWayBinaryTree<T>?) {
-    children = (left, right)
-    left?.parent = self
-    right?.parent = self
-  }
-}
-
