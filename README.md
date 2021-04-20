@@ -16,15 +16,15 @@ A=LH(S1)  B=LH(S2) C=LH(S3)  D=LH(S4)
 
 #### Unbalanced Trees
 ```
-              ROOT=IH(H+E)
-               /        \
-              /          \
-       H=IH(F+G)          E
-       /       \           \
-       /         \           \
-F=IH(A+B)       G=IH(C+D)     E
-/     \           /     \      \
-/       \         /       \      \
+                    ROOT=IH(H+E)
+                     /        \
+                    /          \
+             H=IH(F+G)          E
+             /       \           \
+             /         \           \
+      F=IH(A+B)       G=IH(C+D)     E
+      /     \           /     \      \
+      /       \         /       \      \
 A=LH(S1)  B=LH(S2) C=LH(S3)  D=LH(S4) E=LH(S5)
 ```
 
