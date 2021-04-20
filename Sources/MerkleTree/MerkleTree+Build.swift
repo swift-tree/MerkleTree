@@ -61,9 +61,9 @@ public extension MerkleTree {
     return merge(ArraySlice(roots))
   }
 
-  static func merge(_ nodes: ArraySlice<MerkleTree>) -> MerkleTree {
+  private static func merge(_ nodes: ArraySlice<MerkleTree>) -> MerkleTree {
     let count = nodes.count
-    assert(count != 0, "at least one node should be present")
+    assert(count != 0, "at least one node should exist")
     if count == 1, let first = nodes.first { return first }
     if count == 2, let first = nodes.first, let last = nodes.last {
       return makeSiblings(first, last)
