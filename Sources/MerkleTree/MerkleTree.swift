@@ -45,7 +45,6 @@ extension Digest {
 public extension Data {
   private var hashedHex: String { SHA256.hash(data: self).hexStr }
   var doubleHashedHex: String { SHA256.hash(data: Data(hashedHex.utf8)).hexStr }
-//  var doubleHashedHex: String { String.init(data: self, encoding: .utf8)! }
 }
 
 public struct MerkleNode: Hashable {
