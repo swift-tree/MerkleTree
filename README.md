@@ -29,7 +29,7 @@ A=LH(S1)  B=LH(S2) C=LH(S3)  D=LH(S4) E=LH(S5)
 ```
 
 ### Swift Package Manager
-#### The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use CheckDevice with SPM, add a dependency to your `Package.swift` file: 
+#### The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use MerkleTree with SPM, add a dependency to your `Package.swift` file: 
 
 
 ```swift
