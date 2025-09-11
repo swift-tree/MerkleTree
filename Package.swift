@@ -16,11 +16,15 @@ let package = Package(
       targets: ["MerkleTree"]
     ),
   ],
-  dependencies: [],
+  dependencies: [
+    .package(url: "https://github.com/apple/swift-crypto.git", from: "1.0.0")
+  ],
   targets: [
     .target(
       name: "MerkleTree",
-      dependencies: []
+      dependencies: [
+        .product(name: "Crypto", package: "swift-crypto")
+      ]
     ),
     .testTarget(
       name: "MerkleTreeTests",
