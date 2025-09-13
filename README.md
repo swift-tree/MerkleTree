@@ -80,13 +80,13 @@ import MerkleTree
 import Foundation
 
 let dataBlobs = [
-    "Hello".data(using: .utf8)!, 
-    "World".data(using: .utf8)!, 
-    "This".data(using: .utf8)!, 
-    "is".data(using: .utf8)!, 
-    "a".data(using: .utf8)!, 
-    "Merkle".data(using: .utf8)!, 
-    "Tree".data(using: .utf8)!, 
+    "Hello".data(using: .utf8)!,
+    "World".data(using: .utf8)!,
+    "This".data(using: .utf8)!,
+    "is".data(using: .utf8)!,
+    "a".data(using: .utf8)!,
+    "Merkle".data(using: .utf8)!,
+    "Tree".data(using: .utf8)!,
 ]
 
 let merkleTree = MerkleTree.build(fromBlobs: dataBlobs)
