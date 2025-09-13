@@ -35,6 +35,20 @@ A=LH(S1)  B=LH(S2) C=LH(S3)  D=LH(S4)
 A=LH(S1)  B=LH(S2) C=LH(S3)  D=LH(S4) E=LH(S5)
 ```
 
+## When to Use a Merkle Tree
+
+Merkle Trees are particularly useful when you need to verify the integrity of a large set of data in an efficient and secure manner. Here are a few scenarios where Merkle Trees are a good choice:
+
+*   **Verifying Data Integrity in Distributed Systems:** In a peer-to-peer network, where data is distributed across multiple nodes, Merkle Trees can be used to ensure that the data is consistent and has not been tampered with. For example, file-sharing applications like BitTorrent use Merkle Trees to verify the integrity of file pieces downloaded from different peers.
+
+*   **Blockchain and Cryptocurrencies:** Merkle Trees are a fundamental component of blockchain technology. In Bitcoin, for example, a Merkle Tree is used to summarize all the transactions in a block, creating a single root hash that is included in the block's header. This allows for efficient verification of transactions without having to download the entire block.
+
+*   **Certificate Transparency:** To ensure the integrity of SSL/TLS certificates, Google's Certificate Transparency project uses Merkle Trees to create a public log of all issued certificates. This allows anyone to verify that a certificate is valid and has not been tampered with.
+
+*   **Verifiable Databases:** Merkle Trees can be used to create verifiable databases, where a user can query the database and receive a cryptographic proof that the returned data is correct and has not been tampered with.
+
+In general, if you have a large amount of data and you need to provide a way for users to efficiently verify the integrity of that data, a Merkle Tree is a good data structure to consider.
+
 ## Features
 
 -   Builds a Merkle Tree from an array of `Data` blobs.
@@ -66,13 +80,13 @@ import MerkleTree
 import Foundation
 
 let dataBlobs = [
-    "Hello".data(using: .utf8)!, 
-    "World".data(using: .utf8)!, 
-    "This".data(using: .utf8)!, 
-    "is".data(using: .utf8)!, 
-    "a".data(using: .utf8)!, 
-    "Merkle".data(using: .utf8)!, 
-    "Tree".data(using: .utf8)!, 
+    "Hello".data(using: .utf8)!,
+    "World".data(using: .utf8)!,
+    "This".data(using: .utf8)!,
+    "is".data(using: .utf8)!,
+    "a".data(using: .utf8)!,
+    "Merkle".data(using: .utf8)!,
+    "Tree".data(using: .utf8)!,
 ]
 
 let merkleTree = MerkleTree.build(fromBlobs: dataBlobs)
@@ -103,7 +117,7 @@ func getLeaves(tree: MerkleTree) {
 getLeaves(tree: merkleTree)
 
 // Get the hash of the item you want to audit
-let itemToAudit = "Hello".data(using: .utf8)! 
+let itemToAudit = "Hello".data(using: .utf8)!
 let itemHash = itemToAudit.doubleHashedHex
 
 // Get the audit trail
