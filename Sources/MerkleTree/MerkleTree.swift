@@ -1,4 +1,4 @@
-import CryptoKit
+import Crypto
 import Foundation
 
 public typealias MerkleTree = TwoWayBinaryTree<MerkleNode>
@@ -10,16 +10,6 @@ public extension MerkleTree {
 
   convenience init(blob: Data) {
     self.init(MerkleNode(blob: blob))
-  }
-
-  var height: Int {
-    var sum = 1
-    var rootChildren: TwoWayBinaryTree? = children.left
-    while let left = rootChildren {
-      sum += 1
-      rootChildren = left.children.left
-    }
-    return sum
   }
 }
 

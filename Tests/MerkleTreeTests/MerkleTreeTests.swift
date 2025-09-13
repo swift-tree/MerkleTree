@@ -1,5 +1,8 @@
 import MerkleTree
 import XCTest
+#if canImport(ObjectiveC)
+import ObjectiveC
+#endif
 
 final class MerkleTreeTests: XCTestCase {
     private var tree: MerkleTree!
@@ -239,9 +242,13 @@ private func AssertNoStrongReferenceCycle<T: AnyObject>(
     act: () throws -> T
 ) rethrows {
     weak var system: T?
+    #if canImport(ObjectiveC)
     try autoreleasepool {
         system = try act()
     }
+    #else
+    system = try act()
+    #endif
     
     XCTAssertNil(system, "You've got a reference cycle in \(T.self).", file: file, line: line)
 }
