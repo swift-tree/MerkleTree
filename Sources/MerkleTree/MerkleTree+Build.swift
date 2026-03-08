@@ -3,10 +3,13 @@ import Foundation
 public extension MerkleTree {
   func getAuditTrail(for itemHash: String, leaves: [MerkleTree]) -> [PathHash] {
     guard let targetLeave = leaves.first(where: { $0.value.hash == itemHash }) else { return [] }
-    var path = [PathHash]()
+    return buildTrail(from: targetLeave, siblingHash: itemHash)
+  }
 
-    var currentParent: MerkleTree? = targetLeave.parent
-    var siblingHash = itemHash
+  private func buildTrail(from targetLeaf: MerkleTree, siblingHash startHash: String) -> [PathHash] {
+    var path = [PathHash]()
+    var currentParent: MerkleTree? = targetLeaf.parent
+    var siblingHash = startHash
     while let parent = currentParent {
       if let leftHash = parent.children.left?.value.hash {
         if let rightHash = parent.children.right?.value.hash {
@@ -84,6 +87,19 @@ public extension MerkleTree {
     }
 
     return siblingHash == value.hash
+  }
+
+  /// Generates a single-use ``MerkleProof`` for the leaf with `itemHash`.
+  ///
+  /// Returns `nil` when `itemHash` is not found among `leaves`. The returned
+  /// proof is `~Copyable`: calling ``MerkleProof/verify(itemHash:)`` consumes
+  /// it so that each proof is used at most once.
+  func generateProof(for itemHash: String, leaves: [MerkleTree]) -> MerkleProof? {
+    guard let targetLeaf = leaves.first(where: { $0.value.hash == itemHash }) else { return nil }
+    let trail = buildTrail(from: targetLeaf, siblingHash: itemHash)
+    var root = targetLeaf
+    while let parent = root.parent { root = parent }
+    return MerkleProof(rootHash: root.value.hash, trail: trail)
   }
 
   private static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
