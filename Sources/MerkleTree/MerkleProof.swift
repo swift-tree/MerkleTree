@@ -18,17 +18,13 @@ public struct MerkleProof: ~Copyable {
   /// Verifies that `itemHash` is included in the Merkle tree represented by
   /// this proof. Calling this method **consumes** the proof.
   public consuming func verify(itemHash: String) -> Bool {
-    var pathHashes = trail
     var siblingHash = itemHash
-
-    while !pathHashes.isEmpty {
-      let pathHash = pathHashes.removeFirst()
+    for pathHash in trail {
       let parentHashes = pathHash.leaf == .left
         ? (pathHash.hash + siblingHash)
         : (siblingHash + pathHash.hash)
       siblingHash = Data(parentHashes.utf8).doubleHashedHex
     }
-
     return siblingHash == rootHash
   }
 }
