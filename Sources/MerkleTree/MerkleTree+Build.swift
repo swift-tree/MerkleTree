@@ -86,6 +86,17 @@ public extension MerkleTree {
     return siblingHash == value.hash
   }
 
+  /// Generates a single-use ``MerkleProof`` for the leaf with `itemHash`.
+  ///
+  /// Returns `nil` when `itemHash` is not found among `leaves`. The returned
+  /// proof is `~Copyable`: calling ``MerkleProof/verify(itemHash:)`` consumes
+  /// it so that each proof is used at most once.
+  func generateProof(for itemHash: String, leaves: [MerkleTree]) -> MerkleProof? {
+    guard leaves.contains(where: { $0.value.hash == itemHash }) else { return nil }
+    let trail = getAuditTrail(for: itemHash, leaves: leaves)
+    return MerkleProof(rootHash: value.hash, trail: trail)
+  }
+
   private static func makeSiblings(_ left: MerkleTree, _ right: MerkleTree) -> MerkleTree {
     let heightDifference = left.height - right.height
 

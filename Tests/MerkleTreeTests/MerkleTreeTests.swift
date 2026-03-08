@@ -199,6 +199,49 @@ final class MerkleTreeTests: XCTestCase {
         XCTAssertTrue(tree.audit(itemHash: targetHash, auditTrail: auditTrail))
     }
     
+    func test_merkleProof_valid_powerOf2_3() throws {
+        let x = 3
+        let end = 1 << x
+        tree = makeMerkleTree(n: end)
+        
+        let targetHash = Data(7.description.utf8).doubleHashedHex
+        let targetLeave = try XCTUnwrap(tree.children.right?.children.right?.children.left)
+        
+        guard let proof = tree.generateProof(for: targetHash, leaves: [targetLeave]) else {
+            XCTFail("Expected non-nil MerkleProof for item present in leaves")
+            return
+        }
+        let isValid = proof.verify(itemHash: targetHash)
+        XCTAssertTrue(isValid)
+    }
+    
+    func test_merkleProof_invalid_itemNotInLeaves() throws {
+        tree = makeMerkleTree(n: 8)
+        
+        let notInTreeHash = Data("not_in_tree".utf8).doubleHashedHex
+        let someLeave = try XCTUnwrap(tree.children.left?.children.left?.children.left)
+        
+        let proof = tree.generateProof(for: notInTreeHash, leaves: [someLeave])
+        XCTAssertTrue(proof == nil, "Expected nil MerkleProof when item hash not found in leaves")
+    }
+    
+    func test_merkleProof_wrongItemHash_returnsFalse() throws {
+        let x = 3
+        let end = 1 << x
+        tree = makeMerkleTree(n: end)
+        
+        let targetHash = Data(7.description.utf8).doubleHashedHex
+        let wrongHash = Data(1.description.utf8).doubleHashedHex
+        let targetLeave = try XCTUnwrap(tree.children.right?.children.right?.children.left)
+        
+        guard let proof = tree.generateProof(for: targetHash, leaves: [targetLeave]) else {
+            XCTFail("Expected non-nil MerkleProof for item present in leaves")
+            return
+        }
+        let isValid = proof.verify(itemHash: wrongHash)
+        XCTAssertFalse(isValid)
+    }
+    
     private func makeMerkleTree(n: Int) -> MerkleTree {
         .build(fromBlobs: (1 ... n)
             .map(\.description.utf8)
@@ -222,6 +265,9 @@ final class MerkleTreeTests: XCTestCase {
         ("test_audit_7", test_audit_7),
         ("test_audit_6th", test_audit_6th),
         ("test_referenceCycle", test_referenceCycle),
+        ("test_merkleProof_valid_powerOf2_3", test_merkleProof_valid_powerOf2_3),
+        ("test_merkleProof_invalid_itemNotInLeaves", test_merkleProof_invalid_itemNotInLeaves),
+        ("test_merkleProof_wrongItemHash_returnsFalse", test_merkleProof_wrongItemHash_returnsFalse),
     ]
 }
 
