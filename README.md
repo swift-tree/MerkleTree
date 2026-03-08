@@ -64,7 +64,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) is a tool for au
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/swift-tree/MerkleTree.git", from: "1.0.0")
+        .package(url: "https://github.com/swift-tree/MerkleTree.git", from: "0.1.0")
     ]
 )
 ```
